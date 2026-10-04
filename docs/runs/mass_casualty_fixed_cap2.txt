@@ -1,0 +1,34 @@
+scenario=mass_casualty (Mass Casualty Emergency) reviewer_mode=fixed max_revisions=2 model=nvidia/nemotron-3-super-120b-a12b cache=off
+changes: {"emergency_cases_added": 16, "critical_cases_added": 8, "critical_trauma_admissions_waiting": 6}
+
+  > [supervisor] Routed to scheduling, resource, staff, emergency (scenario run: every agent permitted for the role)
+  > [scheduling] Dr. Jason Hahn at 10:30 AM for Cardiology (predicted wait 19 min); 0 doctor(s) over capacity
+  > [resource] Placed 11 waiting patient(s), 1 unplaced; utilization 86%; solver INFEASIBLE
+  > [staff] 8 staff move(s) proposed; 4 understaffed department(s) before rebalancing; solver OPTIMAL
+  > [emergency] Priority Critical: 23 active cases (9 critical), reserve 0 ICU bed(s), ICU shortfall 9
+  > [reviewer] Attempt 1: ESCALATE (infeasible); revision_count=1; next=human_review
+
+  review attempt 1: ESCALATE (infeasible) decision hash 53b4b0da4329904b
+    - [resource/patient_unbedded/capacity] P05001: No ICU bed available
+    - [emergency/icu_capacity/capacity] 9 critical emergency case(s) need ICU beds but only 0 ICU bed(s) remain free after inpatient allocation.
+    feedback: 1 of 12 patients cannot be bedded: 6 critical patients need ICU beds and 5 ICU beds are free. 9 critical emergency case(s) need ICU beds but only 0 ICU bed(s) remain free after inpatient allocation. Retrying cannot create capacity; a human must decide (divert, open surge capacity, call in off-duty staff).
+
+=== HUMAN REVIEW (graph paused at interrupt()) reason=infeasible
+  The reviewer escalated after 1 attempt(s) because the plan is infeasible with current resources. 1 of 12 patients cannot be bedded: 6 critical patients need ICU beds and 5 ICU beds are free. 9 critical emergency case(s) need ICU beds but only 0 ICU bed(s) remain free after inpatient allocation. Retrying cannot create capacity; a human must decide (divert, open surge capacity, call in off-duty staff).
+  decision: approve (note: Divert remaining critical cases to the regional trauma network)
+  > [human_review] APPROVE (infeasible) attempt 1 - note: Divert remaining critical cases to the regional trauma network
+  > [analytics] Answered with nvidia/nemotron-3-super-120b-a12b
+
+=== FINAL REPORT
+  Mass Casualty Emergency: Surge detected with 23 active emergency cases, 9 critical, and no ICU beds free after inpatient allocation (5 ICU beds initially free, but all used for inpatients). Critical shortfall: 9 ICU beds needed for emergency cases, 0 available.
+  
+  Recommended actions: Assign 3 surgeons, divert or transfer 9 critical cases (no ICU capacity), activate surge protocol and call in off-duty emergency staff, alert on-call administrator, plan discharges (forecast 180 occupied beds tomorrow vs 197 usable).
+  
+  Human approved escalated plan after automated reviewer flagged infeasibility. Unresolved issues: Patient P05001 lacks ICU bed; 9 critical emergency cases need ICU beds but none remain free after inpatient allocation. Administrator note: Divert remaining critical cases to regional trauma network.
+
+=== SUMMARY
+  status: completed
+  verdicts: escalate
+  revision_count: 1
+  LLM API calls: 1 (cache hits not counted)
+  wall time: 16.1s (includes resetting the database to baseline)

@@ -1,0 +1,45 @@
+---
+config:
+  flowchart:
+    curve: linear
+---
+graph TD;
+	__start__([<p>__start__</p>]):::first
+	supervisor(supervisor)
+	scheduling(scheduling)
+	resource(resource)
+	staff(staff)
+	emergency(emergency)
+	reviewer(reviewer)
+	human_review(human_review)
+	analytics(analytics)
+	__end__([<p>__end__</p>]):::last
+	__start__ --> supervisor;
+	emergency -.-> reviewer;
+	human_review -. &nbsp;human rejects&nbsp; .-> __end__;
+	human_review -. &nbsp;human approves&nbsp; .-> analytics;
+	resource -.-> emergency;
+	resource -.-> reviewer;
+	resource -.-> staff;
+	reviewer -. &nbsp;approve&nbsp; .-> analytics;
+	reviewer -. &nbsp;revise&nbsp; .-> emergency;
+	reviewer -. &nbsp;escalate OR revision_count ≥ cap&nbsp; .-> human_review;
+	reviewer -. &nbsp;revise&nbsp; .-> resource;
+	reviewer -. &nbsp;revise&nbsp; .-> scheduling;
+	reviewer -. &nbsp;revise&nbsp; .-> staff;
+	reviewer -. &nbsp;replan&nbsp; .-> supervisor;
+	scheduling -.-> emergency;
+	scheduling -.-> resource;
+	scheduling -.-> reviewer;
+	scheduling -.-> staff;
+	staff -.-> emergency;
+	staff -.-> reviewer;
+	supervisor -.-> analytics;
+	supervisor -.-> emergency;
+	supervisor -.-> resource;
+	supervisor -.-> scheduling;
+	supervisor -.-> staff;
+	analytics --> __end__;
+	classDef default fill:#f2f0ff,line-height:1.2
+	classDef first fill-opacity:0
+	classDef last fill:#bfb6fc

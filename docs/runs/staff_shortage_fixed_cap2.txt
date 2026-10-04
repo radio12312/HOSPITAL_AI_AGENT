@@ -1,0 +1,48 @@
+scenario=staff_shortage (Staff Shortage Event) reviewer_mode=fixed max_revisions=2 model=nvidia/nemotron-3-super-120b-a12b cache=off
+changes: {"staff_called_in_sick": 1, "departments_hit": ["General Medicine", "Cardiology"], "workload_increase_for_remaining": 10, "staff_on_duty_now": 37}
+
+  > [supervisor] Routed to scheduling, resource, staff, emergency (scenario run: every agent permitted for the role)
+  > [scheduling] Dr. Jason Hahn at 10:30 AM for Cardiology (predicted wait 19 min); 0 doctor(s) over capacity
+  > [resource] Placed 6 waiting patient(s), 0 unplaced; utilization 84%; solver OPTIMAL
+  > [staff] 6 staff move(s) proposed; 2 understaffed department(s) before rebalancing; solver OPTIMAL; DEMO FAULT INJECTED: moved S007 (workload 99) to Cardiology
+  > [emergency] Priority High: 7 active cases (1 critical), reserve 1 ICU bed(s)
+  > [reviewer] Attempt 1: REVISE (1 hard violation(s)); revision_count=1; next=staff
+  > [staff] 5 staff move(s) proposed; 2 understaffed department(s) before rebalancing; solver OPTIMAL
+  > [reviewer] Attempt 2: APPROVE (all hard checks passed); revision_count=1; next=analytics
+  > [analytics] Answered with nvidia/nemotron-3-super-120b-a12b
+
+  review attempt 1: REVISE (1 hard violation(s)) decision hash 7f4c74c9e23593e7
+    - [staff/workload_cap/execution] S007 would reach workload 107 > 100
+    feedback: Fix: [staff] S007 would reach workload 107 > 100 -> do not move S007; pick staff with workload headroom
+
+  review attempt 2: APPROVE (all hard checks passed) decision hash 5f5d2b02b65858d8
+
+=== FINAL REPORT
+  **Situation:**  
+  At Wed 30 Sep 2026 10:30, the hospital faces a staff shortage event. Cardiology and General Medicine are understaffed (patients per on-duty staff exceed 6). Cardiology has 2 staff for 29 patients (load ratio 14.5); General Medicine has 5 staff for 37 patients (load ratio 7.4). ICU occupancy is high at 83.3% (5 free beds). Emergency has 7 active cases, 1 critical, no surge detected. Admissions forecast shows high demand over the next 7 days (peaking at 51.6 on Oct 5).  
+  
+  **Recommended Actions:**  
+  - Reallocate staff:  
+    • Move 1 staff from Emergency to General Medicine (S015)  
+    • Move 1 staff each from Neurology (S048), Oncology (S054), and Orthopedics (S083) to Cardiology  
+    • Move 1 staff from Neurology to General Medicine (S081)  
+  - After reallocation:  
+    • Cardiology: 5 staff for 29 patients (load ratio 5.8)  
+    • General Medicine: 7 staff for 37 patients (load ratio 5.29)  
+    • Emergency: 6 staff for 36 patients (load ratio 6.0)  
+  - All departments meet staffing target (≤6 patients per staff).  
+  - Emergency actions: Reserve 1 ICU bed (ICU-26), assign 1 surgeon, plan discharges (forecast 180 occupied beds tomorrow vs 197 usable).  
+  - Note: The automated reviewer approved the plan but flagged 1 revision needed; no human approval was involved.  
+  
+  **Key Metrics:**  
+  - Staffing target: ≤6 patients per on-duty staff  
+  - Post-action load ratios all ≤6.0  
+  - ICU free beds: 5 (after allocation)  
+  - Forecasted beds tomorrow: 180 occupied (197 usable)
+
+=== SUMMARY
+  status: completed
+  verdicts: revise -> approve
+  revision_count: 1
+  LLM API calls: 1 (cache hits not counted)
+  wall time: 16.5s (includes resetting the database to baseline)

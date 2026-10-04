@@ -1,0 +1,34 @@
+scenario=icu_shortage (ICU Capacity Shortage) reviewer_mode=fixed max_revisions=2 model=nvidia/nemotron-3-super-120b-a12b cache=off
+changes: {"icu_beds_filled_overnight": 4, "icu_beds_free": 1, "critical_admissions_waiting": 4}
+
+  > [supervisor] Routed to scheduling, resource, staff, emergency (scenario run: every agent permitted for the role)
+  > [scheduling] Dr. Jason Hahn at 10:30 AM for Cardiology (predicted wait 19 min); 0 doctor(s) over capacity
+  > [resource] Placed 7 waiting patient(s), 3 unplaced; utilization 86%; solver INFEASIBLE
+  > [staff] 5 staff move(s) proposed; 2 understaffed department(s) before rebalancing; solver OPTIMAL
+  > [emergency] Priority Critical: 7 active cases (1 critical), reserve 0 ICU bed(s), ICU shortfall 1
+  > [reviewer] Attempt 1: ESCALATE (infeasible); revision_count=1; next=human_review
+
+  review attempt 1: ESCALATE (infeasible) decision hash 81539da40e9dcc58
+    - [resource/patient_unbedded/capacity] P05006: No ICU bed available
+    - [resource/patient_unbedded/capacity] P05008: No ICU bed available
+    - [resource/patient_unbedded/capacity] P05007: No ICU bed available
+    - [emergency/icu_capacity/capacity] 1 critical emergency case(s) need ICU beds but only 0 ICU bed(s) remain free after inpatient allocation.
+    feedback: 3 of 10 patients cannot be bedded: 4 critical patients need ICU beds and 1 ICU beds are free. 1 critical emergency case(s) need ICU beds but only 0 ICU bed(s) remain free after inpatient allocation. Retrying cannot create capacity; a human must decide (divert, open surge capacity, call in off-duty staff).
+
+=== HUMAN REVIEW (graph paused at interrupt()) reason=infeasible
+  The reviewer escalated after 1 attempt(s) because the plan is infeasible with current resources. 3 of 10 patients cannot be bedded: 4 critical patients need ICU beds and 1 ICU beds are free. 1 critical emergency case(s) need ICU beds but only 0 ICU bed(s) remain free after inpatient allocation. Retrying cannot create capacity; a human must decide (divert, open surge capacity, call in off-duty staff).
+  decision: approve (note: Divert remaining critical cases to the regional trauma network)
+  > [human_review] APPROVE (infeasible) attempt 1 - note: Divert remaining critical cases to the regional trauma network
+  > [analytics] Answered with nvidia/nemotron-3-super-120b-a12b
+
+=== FINAL REPORT
+  ICU is at 96.7% occupancy with only 1 bed free, while 4 critical patients and 1 emergency case need ICU beds. After allocation, 0 ICU beds remain free, leaving 1 critical case without a bed.
+  
+  Recommended actions: divert or transfer the critical case(s) due to no ICU capacity left, assign 1 surgeon, alert the on-call administrator, and plan discharges (forecast 180 occupied beds tomorrow vs 197 usable). An administrator approved the plan after escalation, noting to divert remaining critical cases to the regional trauma network. Unresolved issues include 3 patients (P05006, P05007, P05008) and 1 critical emergency case lacking ICU beds.
+
+=== SUMMARY
+  status: completed
+  verdicts: escalate
+  revision_count: 1
+  LLM API calls: 1 (cache hits not counted)
+  wall time: 18.4s (includes resetting the database to baseline)

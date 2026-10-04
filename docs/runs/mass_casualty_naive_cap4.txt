@@ -1,0 +1,56 @@
+scenario=mass_casualty (Mass Casualty Emergency) reviewer_mode=naive max_revisions=4 model=nvidia/nemotron-3-super-120b-a12b cache=off
+changes: {"emergency_cases_added": 16, "critical_cases_added": 8, "critical_trauma_admissions_waiting": 6}
+
+  > [supervisor] Routed to scheduling, resource, staff, emergency (scenario run: every agent permitted for the role)
+  > [scheduling] Dr. Jason Hahn at 10:30 AM for Cardiology (predicted wait 19 min); 0 doctor(s) over capacity
+  > [resource] Placed 11 waiting patient(s), 1 unplaced; utilization 86%; solver INFEASIBLE
+  > [staff] 8 staff move(s) proposed; 4 understaffed department(s) before rebalancing; solver OPTIMAL
+  > [emergency] Priority Critical: 23 active cases (9 critical), reserve 0 ICU bed(s), ICU shortfall 9
+  > [reviewer] Attempt 1: REVISE (2 hard violation(s) (naive: assumed fixable)); revision_count=1; next=resource
+  > [resource] Placed 11 waiting patient(s), 1 unplaced; utilization 86%; solver INFEASIBLE
+  > [emergency] Priority Critical: 23 active cases (9 critical), reserve 0 ICU bed(s), ICU shortfall 9
+  > [reviewer] Attempt 2: REVISE (2 hard violation(s) (naive: assumed fixable)); revision_count=2; next=resource
+  > [resource] Placed 11 waiting patient(s), 1 unplaced; utilization 86%; solver INFEASIBLE
+  > [emergency] Priority Critical: 23 active cases (9 critical), reserve 0 ICU bed(s), ICU shortfall 9
+  > [reviewer] Attempt 3: REVISE (2 hard violation(s) (naive: assumed fixable)); revision_count=3; next=resource
+  > [resource] Placed 11 waiting patient(s), 1 unplaced; utilization 86%; solver INFEASIBLE
+  > [emergency] Priority Critical: 23 active cases (9 critical), reserve 0 ICU bed(s), ICU shortfall 9
+  > [reviewer] Attempt 4: REVISE (2 hard violation(s) (naive: assumed fixable)); revision_count=4; next=human_review
+
+  review attempt 1: REVISE (2 hard violation(s) (naive: assumed fixable)) decision hash 53b4b0da4329904b
+    - [resource/patient_unbedded/capacity] P05001: No ICU bed available
+    - [emergency/icu_capacity/capacity] 9 critical emergency case(s) need ICU beds but only 0 ICU bed(s) remain free after inpatient allocation.
+    feedback: The plan fails to allocate ICU beds to critical patients despite available resources or insufficient capacity planning. To fix this, immediately reassign non-critical inpatients from ICU beds to step-down units or general wards to free up beds for the 9 critical emergency cases. If no internal reallocation is possible, activate surge capacity protocols (e.g., converting PACU or OR recovery rooms to temporary ICU spaces) and initiate patient transfer requests to affiliated facilities with ICU availability. Ensure all ICU bed assignments are prioritized by clinical urgency using a validated triage score (e.g., SOFA or APACHE-II) to prevent further violations.
+
+  review attempt 2: REVISE (2 hard violation(s) (naive: assumed fixable)) decision hash 53b4b0da4329904b
+    - [resource/patient_unbedded/capacity] P05001: No ICU bed available
+    - [emergency/icu_capacity/capacity] 9 critical emergency case(s) need ICU beds but only 0 ICU bed(s) remain free after inpatient allocation.
+    feedback: The plan fails to allocate ICU beds to critical patients, resulting in 9 emergency cases without access to necessary care. Immediately reallocate available ICU beds from non-critical or lower-priority inpatient admissions to prioritize these 9 critical emergency cases. If no beds are free internally, activate surge capacity protocols—such as converting PACU or step-down units to temporary ICU spaces—or initiate patient transfers to affiliated facilities with ICU availability. Document all reallocations and transfers to ensure compliance and patient safety.
+
+  review attempt 3: REVISE (2 hard violation(s) (naive: assumed fixable)) decision hash 53b4b0da4329904b
+    - [resource/patient_unbedded/capacity] P05001: No ICU bed available
+    - [emergency/icu_capacity/capacity] 9 critical emergency case(s) need ICU beds but only 0 ICU bed(s) remain free after inpatient allocation.
+    feedback: The plan fails to allocate ICU beds to critical patients despite known shortages. Immediately reassign non-ICU inpatient beds or discharge stable patients to free up ICU capacity, and prioritize ICU bed allocation for the 9 critical emergency cases. If no beds can be freed internally, activate surge protocols or coordinate with nearby facilities for patient transfer to prevent adverse outcomes.
+
+  review attempt 4: REVISE (2 hard violation(s) (naive: assumed fixable)) decision hash 53b4b0da4329904b
+    - [resource/patient_unbedded/capacity] P05001: No ICU bed available
+    - [emergency/icu_capacity/capacity] 9 critical emergency case(s) need ICU beds but only 0 ICU bed(s) remain free after inpatient allocation.
+    feedback: The plan fails to allocate ICU beds to critical emergency patients despite high demand. Immediately reassign or prioritize ICU bed allocation for the 9 critical emergency cases by deferring non-urgent inpatient admissions, activating surge capacity (e.g., converting PACU or step-down units), or requesting external ICU bed transfers. Ensure real-time bed tracking is updated to reflect actual availability before finalizing the plan.
+
+=== HUMAN REVIEW (graph paused at interrupt()) reason=cap
+  The reviewer rejected the plan 4 times, reaching the revision cap of 4. Instead of looping again, the best plan so far and the unresolved issues are handed to an administrator. Latest feedback: The plan fails to allocate ICU beds to critical emergency patients despite high demand. Immediately reassign or prioritize ICU bed allocation for the 9 critical emergency cases by deferring non-urgent inpatient admissions, activating surge capacity (e.g., converting PACU or step-down units), or requesting external ICU bed transfers. Ensure real-time bed tracking is updated to reflect actual availa
+  decision: approve (note: Divert remaining critical cases to the regional trauma network)
+  > [human_review] APPROVE (cap) attempt 4 - note: Divert remaining critical cases to the regional trauma network
+  > [analytics] Answered with nvidia/nemotron-3-super-120b-a12b
+
+=== FINAL REPORT
+  Mass Casualty Emergency: 23 active emergency cases, 9 critical, with surge detected. ICU has 0 free beds after inpatient allocation, creating a shortfall for 9 critical cases needing ICU care.
+  
+  Recommended actions: Assign 3 surgeons, divert or transfer 9 critical cases due to no ICU capacity, activate surge protocol and call in off-duty emergency staff, alert on-call administrator, and plan discharges (forecast 180 occupied beds tomorrow vs 197 usable). An administrator approved the plan after automated reviewer escalation, noting to divert remaining critical cases to the regional trauma network. Unresolved issues: patient P05001 lacks ICU bed, and 9 critical emergency cases need ICU beds but none remain free after inpatient allocation.
+
+=== SUMMARY
+  status: completed
+  verdicts: revise -> revise -> revise -> revise
+  revision_count: 4
+  LLM API calls: 5 (cache hits not counted)
+  wall time: 24.4s (includes resetting the database to baseline)
