@@ -1,0 +1,27 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# Node
+node_modules/
+frontend/dist/
+
+# Generated artefacts (rebuilt by seed_data.py)
+backend/data/*.csv
+backend/ml/artifacts/
+*.db
+*.sqlite3
+
+# Local caches / tooling
+.cache/
+.vscode/
+.idea/
+graphify-out/
+.DS_Store
+Thumbs.db
